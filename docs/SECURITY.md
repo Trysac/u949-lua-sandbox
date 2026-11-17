@@ -1,28 +1,17 @@
-# Security notes
+# Security & Threat Model
 
-## Threat model
+## Defended Threats
 
-`lua-sandbox` is a pure library without I/O. The main risks are:
+- **CPU exhaustion**: Handled by `LUA_MASKCOUNT` hooks. Once the instruction limit triggers, the hook enters a sticky state, ensuring every subsequent VM instruction raises an error so `pcall` loops cannot continue.
+- **Memory exhaustion**: A custom `lua_Alloc` tracks live bytes and refuses growth exceeding `Limits::memory_bytes`.
+- **Deep recursion**: `LUA_MASKCALL` and `LUA_MASKRET` track call depth and terminate if `Limits::max_call_depth` is exceeded.
+- **Sandbox breakouts**: `io`, `os`, `package`, `debug`, `require`, `dofile`, `loadfile`, `collectgarbage`, and `coroutine` are removed. The string metatable is locked (`__metatable = false`).
+- **Bytecode loading**: `load()` and the main entry point force mode `"t"` and reject function readers, preventing arbitrary bytecode execution.
+- **Output flooding**: Custom `print` implementation truncates output at `Limits::output_bytes`.
+- **State leaking**: Each `run()` call creates and destroys a fresh `lua_State`.
 
-- **Supply chain**: a compromised dependency, vcpkg port or CI action. Mitigation: standard
-  library only, every vcpkg port pinned by `vcpkg.json`'s `builtin-baseline` and each direct
-  dependency by an exact override, OSV advisories over the upstream release of every installed
-  port and OSV-Scanner over the repository in the gates, Dependabot weekly updates, actions
-  pinned by commit SHA, minimal workflow permissions.
-- **Leaked secrets**: tokens committed by mistake. Mitigation: `gitleaks` runs in the local gates
-  and in CI; `.env` files are git-ignored.
-- **Memory and injection bugs**: buffer overflows, format strings, command injection.
-  Mitigation: clang-tidy (bugprone, cert, clang-analyzer and cppcoreguidelines checks) and the
-  compiler with warnings as errors, and the factory's Semgrep rules
-  (`.semgrep/factory-rules.yml`, `nosemgrep` ignored): no `system`/`popen`, no unbounded
-  `strcpy`/`sprintf`, no non-literal format strings; fix the code instead of silencing it.
-- **Untrusted input**: callers may pass hostile strings. Mitigation: validate input and throw
-  explicit, documented exceptions; use `std::string`, `std::string_view` and bounds-checked
-  access instead of raw buffers.
+## Not Defended
 
-## Publishing
-
-Releases are git tags; publishing to a vcpkg registry or ConanCenter needs a maintainer account
-and a reviewed port, which are never stored in the repository.
-
-To report a vulnerability, see [SECURITY.md](../SECURITY.md).
+- **Blocking host functions**: If an exposed host function performs expensive I/O or CPU work, it will block the VM; wall-clock timeouts are the host's responsibility.
+- **Hardware side channels**: No mitigations for timing or cache-based side-channel attacks.
+- **Upstream Lua vulnerabilities**: Vulnerabilities within the base Lua 5.5 interpreter.

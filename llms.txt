@@ -1,16 +1,10 @@
 # lua-sandbox
 
-> Embed Lua 5.5 with enforced memory, instruction, call depth and output limits, a whitelisted standard library, text-only chunks and typed host function bindings C++20 library `lua-sandbox`, namespace `trysac::lua_sandbox`, CMake target
-> `trysac::lua_sandbox`, MIT licensed, standard library only.
+Embed Lua 5.5 with enforced memory, instruction, call depth and output limits, a whitelisted standard library, text-only chunks and typed host function bindings C++20 library `lua-sandbox`, namespace `trysac::lua_sandbox`, CMake target `trysac::lua_sandbox`.
 
 ## Docs
 
-- [README](README.md): problem, install, usage example
-- [AGENTS](AGENTS.md): commands, folder map, conventions, limits
-- [Architecture](docs/ARCHITECTURE.md): shape of the library and its public API
-- [Testing](docs/TESTING.md): how to run and extend the tests
-
-## Optional
-
-- [Stack](docs/STACK.md): tools used and discarded
-- [Changelog](CHANGELOG.md): release history
+- [README](README.md): Problem, install, usage.
+- [Security](docs/SECURITY.md): Threat model.
+- [Testing](docs/TESTING.md): Testing structure.
+- [Architecture](docs/ARCHITECTURE.md): Design notes.

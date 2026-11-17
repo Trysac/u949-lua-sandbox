@@ -1,47 +1,47 @@
 # lua-sandbox
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/Trysac/u949-lua-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/Trysac/u949-lua-sandbox/actions/workflows/ci.yml)
-
-Embed Lua 5.5 with enforced memory, instruction, call depth and output limits, a whitelisted standard library, text-only chunks and typed host function bindings
+Embed Lua 5.5 in C++20 with enforced memory, instruction, call depth and output limits, a whitelisted standard library, text-only chunks and typed host function bindings.
 
 ## Problem
 
-Describe in two or three sentences the concrete problem this utility solves, who hits it, and what
-they do today without it. Replace this paragraph when the first real feature lands.
+Applications that let users or plugins run scripts embed Lua because it is small, but a default state exposes io, os and load, a script can loop forever, allocate until the process dies or catch the error raised by a limit with pcall and keep going. Hand-rolled sandboxes often miss one of these security boundaries.
 
-## Install
+## Installation
 
-A C++20 library built with CMake. Until it is published to a vcpkg registry, add this repository
-at a release tag as a subdirectory (or through `FetchContent`) and link its target:
-
-```cmake
-add_subdirectory(u949-lua-sandbox)
-target_link_libraries(app PRIVATE trysac::lua_sandbox)
-```
-
-Requires a C++20 compiler and CMake 3.29 or newer. No dependencies outside the C++ standard
-library.
+Uses the vcpkg `lua` port (5.5). In your `CMakeLists.txt`, link against `trysac::lua_sandbox`.
 
 ## Usage
 
 ```cpp
-#include <trysac/lua_sandbox/text.hpp>
+#include <cstdint>
+#include <span>
+#include <variant>
+#include "trysac/lua_sandbox/sandbox.hpp"
 
-// normalize trims surrounding whitespace and lower-cases the text.
-auto name = trysac::lua_sandbox::normalize("  Hello World ");  // "hello world"
-
-// Blank input is rejected explicitly instead of returning an empty string.
-trysac::lua_sandbox::normalize("   ");  // throws BlankInputError ("input is blank")
+trysac::lua_sandbox::Sandbox sandbox;
+sandbox.expose("add", [](std::span<const trysac::lua_sandbox::Value> args) -> trysac::lua_sandbox::Value {
+  return std::get<std::int64_t>(args[0]) + std::get<std::int64_t>(args[1]);
+});
+auto result = sandbox.run("return add(2, 3)");
 ```
 
-## Documentation
+## API Summary
 
-- [Architecture](docs/ARCHITECTURE.md) and [decisions](docs/decisions/)
-- [Testing](docs/TESTING.md) and [security](docs/SECURITY.md)
-- [Project record](docs/PROJECT.md) and [stack](docs/STACK.md)
-- [Changelog](CHANGELOG.md) and [contributing guide](CONTRIBUTING.md)
+### Limits
 
-## License
+Configurable via `struct Limits`:
+- `memory_bytes` (default 16,777,216)
+- `instructions` (default 10,000,000)
+- `script_bytes` (default 1,048,576)
+- `max_call_depth` (default 200)
+- `output_bytes` (default 65,536)
 
-[MIT](LICENSE) (c) 2026 Miguel Gomez
+### Errors & Results
+
+Methods throw `SandboxError` (codes: `input_too_large`, `invalid_name`, `invalid_limits`) for invalid configuration. `Sandbox::run` returns `RunResult`, which contains a `Status` (`ok`, `syntax_error`, `runtime_error`, `memory_limit`, `instruction_limit`, `depth_limit`, `output_limit`) and relevant output details.
+
+## Why not <best-known alternative>
+
+Compared to raw embedding or other wrappers, this library provides limits that hold against `pcall` loops and a curated environment by default, combined with strictly typed host bindings.
+
+See [docs/SECURITY.md](docs/SECURITY.md) for the threat model.

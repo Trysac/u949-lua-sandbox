@@ -7,3 +7,7 @@ set(FABRICA_TEST_TARGETS)
 # catch2 (tests)
 find_package(Catch2 CONFIG REQUIRED)
 list(APPEND FABRICA_TEST_TARGETS Catch2::Catch2WithMain)
+
+# lua (library)
+find_package(Lua REQUIRED)
+list(APPEND FABRICA_LIBRARY_TARGETS ${LUA_LIBRARIES})

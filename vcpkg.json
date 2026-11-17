@@ -1,21 +1,36 @@
 {
-  "$comment": "Factory-owned file: agents must not edit it. builtin-baseline pins every port version; overrides pin each direct dependency exactly. scripts/add_dependency.cmake adds dependencies.",
-  "builtin-baseline": "9eec002df1cd109f8f104cd966a763daf9751489",
-  "features": {
-    "tests": {
-      "description": "Test-only dependencies",
-      "dependencies": [
+  "$comment" : "Factory-owned file: agents must not edit it. builtin-baseline pins every port version; overrides pin each direct dependency exactly. scripts/add_dependency.cmake adds dependencies.",
+  "builtin-baseline" : "9eec002df1cd109f8f104cd966a763daf9751489",
+  "dependencies" : 
+  [
+    {
+      "name" : "lua",
+      "version>=" : "5.5.1"
+    }
+  ],
+  "features" : 
+  {
+    "tests" : 
+    {
+      "dependencies" : 
+      [
         {
-          "name": "catch2",
-          "version>=": "3.16.0"
+          "name" : "catch2",
+          "version>=" : "3.16.0"
         }
-      ]
+      ],
+      "description" : "Test-only dependencies"
     }
   },
-  "overrides": [
+  "overrides" : 
+  [
     {
-      "name": "catch2",
-      "version": "3.16.0"
+      "name" : "catch2",
+      "version" : "3.16.0"
+    },
+    {
+      "name" : "lua",
+      "version" : "5.5.1"
     }
   ]
 }

@@ -1,0 +1,16 @@
+# Build output, vcpkg's installed tree and coverage data
+/build/
+/vcpkg_installed/
+*.profraw
+*.profdata
+CMakeUserPresets.json
+
+# IDE
+.idea/
+.vscode/
+.cache/
+
+# Local environment
+.env
+.env.*
+!.env.example

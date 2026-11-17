@@ -1,0 +1,12 @@
+# gitleaks configuration: default rules plus local-only paths that are never committed.
+title = "lua-sandbox gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Local tool output (ignored by git)"
+paths = [
+  '''(^|/)build/''',
+  '''(^|/)vcpkg_installed/''',
+]

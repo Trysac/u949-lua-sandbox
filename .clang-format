@@ -1,0 +1,8 @@
+# Factory-owned file: agents must not edit it. Layout of every C++ file; the format gate runs
+# clang-format --dry-run -Werror and the factory applies clang-format -i before the gates.
+BasedOnStyle: Google
+ColumnLimit: 120
+DerivePointerAlignment: false
+PointerAlignment: Left
+IncludeBlocks: Preserve
+InsertNewlineAtEOF: true

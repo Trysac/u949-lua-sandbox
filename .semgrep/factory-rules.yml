@@ -1,0 +1,71 @@
+# Semgrep CE rules owned by the factory (MIT, like this repository). The semgrep gate in scripts/check.cmake runs
+# only this file; Semgrep-maintained registry rules are never used (their license forbids distribution and
+# service use). Every rule is ERROR: a match fails the gate. Factory-owned file: agents must not edit it.
+rules:
+  - id: fabrica.cpp.exec-through-shell
+    languages: [cpp]
+    severity: ERROR
+    message: system() and popen() run their argument through a shell, so any part of it that comes from input allows command injection. Start the program with posix_spawn (or CreateProcess) and pass each argument separately.
+    pattern-either:
+      - pattern: system(...)
+      - pattern: std::system(...)
+      - pattern: popen(...)
+      - pattern: _popen(...)
+      - pattern: _wsystem(...)
+      - pattern: execl("/bin/sh", ...)
+      - pattern: execlp("sh", ...)
+  - id: fabrica.cpp.unbounded-string-copy
+    languages: [cpp]
+    severity: ERROR
+    message: strcpy, strcat, sprintf, vsprintf and gets write without a bound and overflow the destination on long input. Use std::string, std::format or a bounded call such as snprintf.
+    pattern-either:
+      - pattern: strcpy(...)
+      - pattern: std::strcpy(...)
+      - pattern: strcat(...)
+      - pattern: std::strcat(...)
+      - pattern: sprintf(...)
+      - pattern: std::sprintf(...)
+      - pattern: vsprintf(...)
+      - pattern: std::vsprintf(...)
+      - pattern: gets(...)
+      - pattern: wcscpy(...)
+      - pattern: wcscat(...)
+  - id: fabrica.cpp.format-string-from-variable
+    languages: [cpp]
+    severity: ERROR
+    message: A printf-family format string that is not a literal lets the input control the format (reads and writes through %s and %n). Pass a literal format and the value as an argument.
+    patterns:
+      - pattern-either:
+          - pattern: printf($FMT, ...)
+          - pattern: std::printf($FMT, ...)
+          - pattern: fprintf($F, $FMT, ...)
+          - pattern: std::fprintf($F, $FMT, ...)
+          - pattern: snprintf($B, $N, $FMT, ...)
+          - pattern: std::snprintf($B, $N, $FMT, ...)
+          - pattern: syslog($P, $FMT, ...)
+      - pattern-not: printf("...", ...)
+      - pattern-not: std::printf("...", ...)
+      - pattern-not: fprintf($F, "...", ...)
+      - pattern-not: std::fprintf($F, "...", ...)
+      - pattern-not: snprintf($B, $N, "...", ...)
+      - pattern-not: std::snprintf($B, $N, "...", ...)
+      - pattern-not: syslog($P, "...", ...)
+  - id: fabrica.cpp.insecure-temp-file
+    languages: [cpp]
+    severity: ERROR
+    message: tmpnam, tempnam and mktemp return a name another process can claim before the file is created. Use mkstemp or std::filesystem with an exclusive open.
+    pattern-either:
+      - pattern: tmpnam(...)
+      - pattern: std::tmpnam(...)
+      - pattern: tempnam(...)
+      - pattern: mktemp(...)
+  - id: fabrica.cpp.hardcoded-secret
+    languages: [cpp]
+    severity: ERROR
+    message: A credential (private key, AKIA access key, GitHub, Slack or Stripe token) is hard-coded in the source. Read it from the environment.
+    pattern-either:
+      - pattern-regex: -----BEGIN (RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY-----
+      - pattern-regex: \b(AKIA|ASIA)[0-9A-Z]{16}\b
+      - pattern-regex: \bgh[pousr]_[A-Za-z0-9]{36}\b
+      - pattern-regex: \bxox[baprs]-[A-Za-z0-9-]{10,}\b
+      - pattern-regex: \bsk_live_[A-Za-z0-9]{24,}\b

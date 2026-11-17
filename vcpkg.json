@@ -1,0 +1,21 @@
+{
+  "$comment": "Factory-owned file: agents must not edit it. builtin-baseline pins every port version; overrides pin each direct dependency exactly. scripts/add_dependency.cmake adds dependencies.",
+  "builtin-baseline": "9eec002df1cd109f8f104cd966a763daf9751489",
+  "features": {
+    "tests": {
+      "description": "Test-only dependencies",
+      "dependencies": [
+        {
+          "name": "catch2",
+          "version>=": "3.16.0"
+        }
+      ]
+    }
+  },
+  "overrides": [
+    {
+      "name": "catch2",
+      "version": "3.16.0"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"lang": "cpp", "package": "trysac-lua-sandbox", "commands": {"install": [["cmake", "-P", "scripts/configure.cmake"]], "check": [["cmake", "-P", "scripts/check.cmake"]]}}
